@@ -1,50 +1,52 @@
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
 
 public class CanteenSystem {
+
     static Map<String, String> users = new HashMap<>();
     static java.util.List<String> orders = new ArrayList<>();
 
     public static void main(String[] args) {
-        new LoginWindow();
+        SwingUtilities.invokeLater(() -> new LoginWindow());
     }
 }
 
-class LoginWindow extends Frame {
-    TextField tfUser, tfPass;
-    Label lblStatus;
+class LoginWindow extends JFrame {
+    JTextField tfUser;
+    JPasswordField tfPass;
+    JLabel lblStatus;
 
     LoginWindow() {
         setTitle("Login / Signup");
         setSize(350, 200);
         setLayout(new FlowLayout());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        add(new Label("Username:"));
-        tfUser = new TextField(15);
+        add(new JLabel("Username:"));
+        tfUser = new JTextField(15);
         add(tfUser);
 
-        add(new Label("Password:"));
-        tfPass = new TextField(15);
-        tfPass.setEchoChar('*');
+        add(new JLabel("Password:"));
+        tfPass = new JPasswordField(15);
         add(tfPass);
 
-        Button btnLogin = new Button("Login");
-        Button btnSignup = new Button("Signup");
-        lblStatus = new Label("Please login or signup");
+        JButton btnLogin = new JButton("Login");
+        JButton btnSignup = new JButton("Signup");
+        lblStatus = new JLabel("Please login or signup");
         add(btnLogin);
         add(btnSignup);
         add(lblStatus);
 
         btnLogin.addActionListener(e -> login());
         btnSignup.addActionListener(e -> signup());
+
         setVisible(true);
     }
 
-    // Signup method
     private void signup() {
         String user = tfUser.getText();
-        String pass = tfPass.getText();
+        String pass = new String(tfPass.getPassword());
         if (user.isEmpty() || pass.isEmpty()) {
             lblStatus.setText("Fields cannot be empty!");
             return;
@@ -59,10 +61,10 @@ class LoginWindow extends Frame {
 
     private void login() {
         String user = tfUser.getText();
-        String pass = tfPass.getText();
+        String pass = new String(tfPass.getPassword());
         if (CanteenSystem.users.containsKey(user) && CanteenSystem.users.get(user).equals(pass)) {
             lblStatus.setText("Login successful!");
-
+            dispose();
             new MenuWindow(user);
         } else {
             lblStatus.setText("Invalid credentials!");
@@ -70,52 +72,54 @@ class LoginWindow extends Frame {
     }
 }
 
-class MenuWindow extends Frame {
-    Choice foodMenu;
-    TextField tfQty;
-    Label lblBill;
-    TextArea orderList;
+class MenuWindow extends JFrame {
+    JComboBox<String> foodMenu;
+    JTextField tfQty;
+    JLabel lblBill;
+    JTextArea orderList;
     int total = 0;
 
     MenuWindow(String username) {
         setTitle("Menu - Welcome " + username);
         setSize(400, 400);
         setLayout(new FlowLayout());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Menu Items
-        foodMenu = new Choice();
-        foodMenu.add("Pizza - 150");
-        foodMenu.add("Burger - 80");
-        foodMenu.add("Pasta - 120");
-        foodMenu.add("Sandwich - 60");
+        foodMenu = new JComboBox<>();
+        foodMenu.addItem("Pizza - 150");
+        foodMenu.addItem("Burger - 80");
+        foodMenu.addItem("Pasta - 120");
+        foodMenu.addItem("Sandwich - 60");
 
-        add(new Label("Select Food:"));
+        add(new JLabel("Select Food:"));
         add(foodMenu);
 
-        add(new Label("Quantity:"));
-        tfQty = new TextField("1", 5);
+        add(new JLabel("Quantity:"));
+        tfQty = new JTextField("1", 5);
         add(tfQty);
 
-        Button btnAdd = new Button("Add to Order");
+        JButton btnAdd = new JButton("Add to Order");
         add(btnAdd);
 
-        lblBill = new Label("Total: ₹0");
+        lblBill = new JLabel("Total: ₹0");
         add(lblBill);
 
-        orderList = new TextArea(10, 30);
-        add(orderList);
+        orderList = new JTextArea(10, 30);
+        orderList.setEditable(false);
+        add(new JScrollPane(orderList));
 
-        Button btnConfirm = new Button("Confirm Order");
+        JButton btnConfirm = new JButton("Confirm Order");
         add(btnConfirm);
 
         btnAdd.addActionListener(e -> addOrder());
         btnConfirm.addActionListener(e -> confirmOrder());
+
         setVisible(true);
     }
 
     private void addOrder() {
         try {
-            String selected = foodMenu.getSelectedItem();
+            String selected = (String) foodMenu.getSelectedItem();
             int price = Integer.parseInt(selected.split("-")[1].trim());
             int qty = Integer.parseInt(tfQty.getText());
             int amount = price * qty;
@@ -128,35 +132,37 @@ class MenuWindow extends Frame {
         }
     }
 
-    // Confirm order
     private void confirmOrder() {
         String order = orderList.getText();
         if (order.isEmpty()) {
             lblBill.setText("No items in order!");
             return;
         }
-        // Add "Pending" status
         String fullOrder = order + "Status: Pending\n";
         CanteenSystem.orders.add(fullOrder);
+
+        dispose();
         new KitchenDisplayWindow();
     }
 }
 
-class KitchenDisplayWindow extends Frame {
+class KitchenDisplayWindow extends JFrame {
     KitchenDisplayWindow() {
         setTitle("Kitchen Orders");
         setSize(300, 300);
         setLayout(new FlowLayout());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        TextArea kitchenArea = new TextArea(10, 25);
+        JTextArea kitchenArea = new JTextArea(10, 25);
+        kitchenArea.setEditable(false);
 
-        // Display all orders with status
         for (int i = 0; i < CanteenSystem.orders.size(); i++) {
             kitchenArea.append("Order #" + (i + 1) + "\n");
             kitchenArea.append(CanteenSystem.orders.get(i));
             kitchenArea.append("\n---\n");
         }
-        add(kitchenArea);
+        add(new JScrollPane(kitchenArea));
+
         setVisible(true);
     }
 }

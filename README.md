@@ -1,1 +1,1 @@
-A beginner friendly AWT java project for college project.
+A beginner friendly AWT/swing java project for college project.
